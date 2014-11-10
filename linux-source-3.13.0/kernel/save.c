@@ -11,9 +11,12 @@ struct var{
 };
 /* Initialize the root node*/
 struct node *root;
+/* Initialize the conductor node, used for traversing the linked list */
+struct node *conductor;
 root = (struct node *)malloc(sizeof(struct node));
 root->next=0;
 root->def=0; 
+conductor=root;
 
 asmlinkage int SaveVariable(char *varname, char *vardef) {
 	printk(KERN_EMERG "Entering SaveVariable()");
@@ -30,16 +33,19 @@ asmlinkage int SaveVariable(char *varname, char *vardef) {
 }
 
 asmlinkage int GetVariable(char *varname, char *vardef, int deflen){
-/*	int index = root;
-	printk(KERN_EMERG "Entering GetVariable()");	
 	
-	while(index != NULL){
-		if (){
-			
+	printk(KERN_EMERG "Entering GetVariable()");	
+
+	if (conductor !=0){
+		while (conductor->next != 0){
+			if (conductor == *varname){
+				*vardef = conductor->def;
+			}
+			conductor = conductor->next;
 		}
-		index = index->next;
 	}
-*/
+	conductor->next = malloc(sizeof(struct node));
+
 	return(0);
 }
 
