@@ -48,6 +48,15 @@ asmlinkage int GetVariable(char *varname, char *vardef, int deflen){
 
 asmlinkage int NextVariable(char *prevname, char *varname, int namelen, char *vardef, int deflen){
 	printk(KERN_EMERG "Entering NextVariable()");
-	
+/*	
+	if (conductor != 0){ //ensures the memory was properly allocated
+		while (conductor->next != 0){ 			//traverses the list to find the
+			if (conductor == *varname){ 		//saved variable needed and
+				*vardef = conductor->def;	//assign the saved defintion
+			}
+			conductor = conductor->next; //hops to the next item in the list
+		}
+	}
+*/
 	return(0);
 }
