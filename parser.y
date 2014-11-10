@@ -8,7 +8,7 @@
 #include "svsh.h"
 
 extern void builtIn(int cmd, char * str, char * varName);
-extern void userCmd(ARG_LIST * argList, char * inputRedirect, char * outputRedirect);
+extern void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirect);
 int yylex(void);
 void yyerror(char * s);
 void printArgList(ARG_LIST * argList);
@@ -65,26 +65,25 @@ command:
 	      |	LISTJOBS			{ builtIn(LISTJOBS, NULL, NULL); }
 	      |	CD WORD				{ builtIn(CD, $2, NULL); }
 	      |	BYE					{ builtIn(BYE, NULL, NULL); }
-	      | user_command		{ 
-						userCmd($1, NULL, NULL);
+          | ASSIGNTO VARIABLE user_command      { user_command($3, $2, NULL);}
+	      | user_command		{
+						user_command($1, NULL, NULL);
 						free($1);
 					}
 	      ; 	
 
 user_command:
-	        WORD arg_list		{ 
-						/*ARG_LIST * argList = makeArgList($1, $2);
-						userCmd(argList); 
-						free(argList);*/
+	       WORD arg_list		{
 						$$ = makeArgList($1, $2);
 					}
 	      | WORD			{ 
-						/*ARG_LIST * argList = makeArgList($1, $2);
-						userCmd(makeArgList($1, NULL)); 
-						free(argList);*/
+
 						$$ = makeArgList($1, NULL);
 					}
-	      ;
+          | RUN WORD    {
+                        $$ = makeArgList($2,NULL);
+          }
+        ;
 
 arg_list:
 		WORD			{ $$ = makeArgList($1, NULL); }
