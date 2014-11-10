@@ -1,0 +1,239 @@
+//
+//  svsh.c
+//  svsh
+//
+//  Created by Aly Shehata on 11/9/14.
+//  Copyright (c) 2014 Aly Shehata. All rights reserved.
+//
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/wait.h>
+#include "svsh_structs.h"
+#include "svsh.h"
+#include "y.tab.h"
+
+char* shellName = "svsh > ";
+
+void initCmdPrompt(void){
+    
+    
+}
+void printCmdPrompt(void){
+    printf("%s", shellName);
+}
+
+
+void addToEnvList(char * varName, char * varValue)
+{
+    /* Check if variable exists in ENVIRON_LIST */
+    ENVIRON_LIST * currentEntry = environList;
+    int found = 0;
+    while(currentEntry != NULL && !found)
+    {
+        if(strcmp(currentEntry->varName, varName) == 0)
+        {
+            strncpy(currentEntry->varValue, varValue,
+                    sizeof(currentEntry->varValue));
+            found = 1;
+            
+        }
+        currentEntry = currentEntry->next;
+    }
+    /*
+     * If no existing entry was found, create a new entry
+     * at the start of the list
+     */
+    if(!found)
+    {
+        /* Create new entry */
+        ENVIRON_LIST * newEntry = malloc(sizeof(ENVIRON_LIST));
+        strncpy(newEntry->varName, varName, sizeof(newEntry->varName));
+        strncpy(newEntry->varValue, varValue, sizeof(newEntry->varValue));
+        newEntry->prev = NULL;
+        /* Point newEntry->next to start of global list */
+        newEntry->next = environList;
+        if(environList != NULL)
+            environList->prev = newEntry;
+        /* Change the global pointer to start at newEntry */
+        environList = newEntry;
+    }
+}	
+
+void listEnv(){
+    ENVIRON_LIST *myEntry = environList;
+    while (myEntry != NULL){
+        printf("%s=%s\n", myEntry->varName, myEntry->varValue);
+        myEntry = myEntry->next;
+    }
+}
+
+
+
+void builtIn(int cmd, char * str, char * varName){
+    switch(cmd){
+        case(DEFPROMPT):{
+            shellName = str;
+            break;
+        }
+            
+        case(CD):{
+            if (chdir(str) < 0)
+                perror("Change Directory");
+            break;
+        }
+        case(EQUALTO):{
+            addToEnvList(varName, str);
+            break;
+        }
+        case(LISTJOBS):{
+            listEnv();
+            break;
+        }
+        case(BYE):{
+            exit(0);
+            break;
+        }
+            
+        
+    }
+}
+
+void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirect){
+    int argListCount = 0;
+    int envListCount = 0;
+    ARG_LIST * myArglist = argList;
+    char output[4096];
+    while(myArglist != NULL)
+    {
+        argListCount++;
+        myArglist = myArglist->next;
+    }
+    char ** argv = malloc((argListCount + 1) * sizeof(char[INPUT_LIMIT]));
+    /* Copy word list to argv */
+    myArglist = argList;
+    int i = 0;
+    while(myArglist != NULL)
+    {
+        argv[i] = myArglist->word;
+        myArglist = myArglist->next;
+        i++;
+    }
+    argv[i] = NULL; // Last element has to be null for exec to work properly.
+    
+    ENVIRON_LIST * environListIterator = environList;
+    while(environListIterator != NULL)
+    {
+        envListCount++;
+        environListIterator = environListIterator->next;
+    }
+    /*
+     * NOTE: The environ array has to be able to hold a string of size "[256]=[256]"
+     */
+    char ** environ = (char **) malloc((envListCount + 1) * sizeof(char *));
+    /*
+     * Create environ strings in VAR=VAL format for each variable
+     * in the environList.
+     */
+    environListIterator = environList;
+    i = 0;
+    while(environListIterator != NULL)
+    {
+        environ[i] = malloc((2*INPUT_LIMIT)+1);
+        strncpy(environ[i], environListIterator->varName, (2*INPUT_LIMIT + 3));
+        strcat(environ[i], "=");
+        strcat(environ[i], environListIterator->varValue);
+        environListIterator = environListIterator->next;
+        i++;
+    }
+    environ[i] = NULL;
+    
+    if (strcmp(argv[0], "assignto")){
+        outputRedirect = inputRedirect;
+    }
+    
+    pid_t pid;
+    int status;
+    outputRedirect = inputRedirect;
+    if((pid = fork()) == 0)
+    {
+        /* Child process */
+//        if(inputRedirect != NULL)
+//        {
+//            int fdIn;
+//            if((fdIn = open(inputRedirect, O_RDONLY, 0)) < 0)
+//            {
+//                perror("OPEN");
+//                exit(0);
+//            }
+//            if((status = dup2(fdIn, 0)) < 0)
+//            {
+//                perror("DUP2");
+//                exit(0);
+//            }
+//        }
+        
+        if(outputRedirect != NULL)
+        {
+            int fdOut;
+            if((fdOut = open(outputRedirect, O_CREAT|O_WRONLY, 0777)) < 0)
+            {
+                perror("OPEN");
+                exit(0);
+            }
+            if((status = dup2(fdOut, 1)) < 0)
+            {
+                perror("DUP2");
+                exit(0);
+            }
+        }
+        if(execve(argv[0], argv, environ) < 0)
+        {
+            printf("%s: Command not found. \n", argv[0]);			    
+            exit(0);
+        }
+    }
+    
+    if(waitpid(pid, &status, 0) < 0)
+    {
+        perror("WAITPID");
+        kill(pid, SIGKILL);
+        FILE *fp;
+        char ch;
+        int len = 0;
+        fp=fopen(outputRedirect,"r");
+        if(!fp) {
+            printf("Cannot open file!\n");
+            return;
+        }
+        ch=fgetc(fp);
+        while(ch != EOF && ch!= '\n' && len < 30)
+        {
+            output[len] = ch;
+            len++;
+            ch=fgetc(fp);
+        }
+        output[len] = 0;
+        printf("%s", output);
+    }
+    /*
+     * Free memory allocated for argv and environ arrays
+     */
+    free(argv);
+    for(i = 0; i <= envListCount; i++)
+        free(environ[i]);
+    free(environ);
+    printf("%s", output);
+    //free(environPlaceHolder);
+
+
+    
+}
+
+
