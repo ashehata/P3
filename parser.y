@@ -12,9 +12,10 @@ extern void user_command(ARG_LIST * argList, char * inputRedirect, char * output
 int yylex(void);
 void yyerror(char * s);
 void printArgList(ARG_LIST * argList);
+void printTokenList(TOKEN_LIST * tokenList);
 ARG_LIST * makeArgList(char * arg, ARG_LIST * wordList);
+extern void makeTokenList(char * tokenType, char * tokenList, char * usage, TOKEN_LIST * wordList);
 int yydebug = 1;
-/* static WORD_LIST * currentWordList = NULL; */
 
 %}
 
@@ -25,14 +26,16 @@ int yydebug = 1;
 	char * variable;
 	char * metachar;
 	ARG_LIST * argList;
+	TOKEN_LIST * tokenList;
 };
 
-%token NEWLINE DEFPROMPT CD EQUALTO  ASSIGNTO LISTJOBS BYE BG RUN PATH
+%token NEWLINE DEFPROMPT CD  ASSIGNTO LISTJOBS BYE BG RUN PATH
 %token <str> STRING
 %token <word> WORD
-%token <metachar> METACHAR
+%token <metachar> METACHAR EQUALTO
 %token <variable> VARIABLE
 %type <argList> arg_list user_command
+/*%type <tokenList> user_command*/
 %type <str> command
 
 %%
@@ -58,14 +61,26 @@ line:
 	      ;
 
 command:
-		DEFPROMPT STRING	{ builtIn(DEFPROMPT, $2, NULL); }
-	      | PATH STRING		{ builtIn(PATH, $2, NULL); }
-	      | VARIABLE EQUALTO STRING	{ builtIn(EQUALTO, $1, $3); }
-	      | ASSIGNTO WORD STRING	{ builtIn(ASSIGNTO, $3, $2); }
+		DEFPROMPT STRING	{		builtIn(DEFPROMPT, $2, NULL); }
+	      | PATH STRING		{ 		makeTokenList("word", "PATH", "variable_name", NULL);
+							builtIn(PATH, $2, NULL); }
+	      | VARIABLE EQUALTO STRING	{ 		builtIn(EQUALTO, $1, $3);
+							makeTokenList("variable", $1,"variable_name", NULL);
+							makeTokenList("metachar", "=", "assignment",NULL);
+							makeTokenList("string", $3, "variable_def",NULL); }
+	     /* | ASSIGNTO WORD STRING	{	makeTokenList("keyword", "assignto", "assignto");
+						makeTokenList("word", $2, "variable_name");
+						makeTokenList("",""
+						 builtIn(ASSIGNTO, $3, $2); }*/
 	      |	LISTJOBS			{ builtIn(LISTJOBS, NULL, NULL); }
-	      |	CD WORD				{ builtIn(CD, $2, NULL); }
+	      |	CD WORD				{	makeTokenList("keyword", "cd", "cd", NULL);
+							makeTokenList("word", $2, "arg", NULL);
+							builtIn(CD, $2, NULL); }
 	      |	BYE					{ builtIn(BYE, NULL, NULL); }
-          | ASSIGNTO VARIABLE user_command      { user_command($3, $2, NULL);}
+          | ASSIGNTO VARIABLE user_command      { 	makeTokenList("keyword", "assignto", "assignto", NULL);
+							makeTokenList("word", $2, "variable_name", NULL);
+							//makeTokenList("cmd", $3, "cmd", NULL);
+							user_command($3, $2, NULL);}
 	      | user_command		{
 						user_command($1, NULL, NULL);
 						free($1);
@@ -105,7 +120,29 @@ ARG_LIST * makeArgList(char * arg, ARG_LIST * argList)
 	argList = newEntry;
 	return argList;
 }
-
+/*
+TOKEN_LIST * makeTokenList(char * tokenType, char * token, char * usage,TOKEN_LIST * tokenList )
+{
+	TOKEN_LIST * newToken = malloc(sizeof(TOKEN_LIST));
+	strncpy(newToken -> tokenType, tokenType, sizeof(newToken->tokenType));
+	strncpy(newToken -> token, token, sizeof(newToken->token));
+	strncpy(newToken -> usage, usage, sizeof(newToken->usage));
+	newToken->next = tokenList;
+	tokenList = newToken;
+	//printTokenList(tokenList);
+	return tokenList;
+}
+*/	 
+void printTokenList(TOKEN_LIST * tokenList)
+{
+	TOKEN_LIST * currentToken = tokenList;
+	//printf("Tokens:\n");
+	while(currentToken != NULL)
+	{
+		printf("Token Type: %-20s Token: %-20s Usage:  %-20s\n", currentToken->tokenType, currentToken->token, currentToken->usage);
+		currentToken = currentToken->next;
+	}
+}
 void printArgList(ARG_LIST * argList)
 {
 	ARG_LIST * currentArg = argList;

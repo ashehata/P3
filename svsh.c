@@ -19,7 +19,30 @@
 #include "svsh.h"
 #include "y.tab.h"
 
+char* showTokens = "0";
+
 char* shellName = "svsh > ";
+
+void displayTokens(TOKEN_LIST * tokenList){
+        TOKEN_LIST *myToken = tokenList;
+        while(myToken != NULL){
+                printf("Token Type: %-20s Token: %-20s Usage: %-20s\n", myToken -> tokenType, myToken -> token, myToken->usage);
+        myToken = myToken->next;
+        }
+}
+
+void makeTokenList(char * tokenType, char * token, char * usage,TOKEN_LIST * tokenList )                   
+{                                                                                                                  
+	if(strcmp(showTokens,"1")==0){
+	TOKEN_LIST * newToken = malloc(sizeof(TOKEN_LIST));                                                       
+        strncpy(newToken -> tokenType, tokenType, sizeof(newToken->tokenType));                                   
+        strncpy(newToken -> token, token, sizeof(newToken->token));                                                       
+	strncpy(newToken -> usage, usage, sizeof(newToken->usage));
+        newToken->next = tokenList;
+	tokenList = newToken;
+	displayTokens(tokenList);
+	}                                                                               
+}
 
 void initCmdPrompt(void){
     
@@ -73,8 +96,14 @@ void listEnv(){
         myEntry = myEntry->next;
     }
 }
-
-
+/*
+void displayTokens(){
+	TOKEN_LIST *myToken = tokenList;
+	while(myToken != NULL){
+		printf("Token Type: %-20s Token: %-20s Usage: %-20s\n", myToken -> tokenType, myToken -> token, myToken->usage);
+	myToken = myToken->next;
+	}
+} */
 
 void builtIn(int cmd, char * str, char * varName){
     switch(cmd){
@@ -89,6 +118,10 @@ void builtIn(int cmd, char * str, char * varName){
             break;
         }
         case(EQUALTO):{
+		//printf("varName = %s", varName);
+		if(strcmp(str, "$ShowTokens") ==0){
+			showTokens = varName;
+		}
             addToEnvList(varName, str);
             break;
         }
@@ -97,7 +130,7 @@ void builtIn(int cmd, char * str, char * varName){
             break;
         }
         case(BYE):{
-            exit(0);
+	    exit(0);
             break;
         }
             
@@ -106,7 +139,7 @@ void builtIn(int cmd, char * str, char * varName){
 }
 
 void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirect){
-    int argListCount = 0;
+	int argListCount = 0;
     int envListCount = 0;
     ARG_LIST * myArglist = argList;
     char output[4096];
@@ -161,6 +194,8 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     pid_t pid;
     int status;
     outputRedirect = inputRedirect;
+   
+
     if((pid = fork()) == 0)
     {
         /* Child process */

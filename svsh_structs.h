@@ -3,6 +3,13 @@
 
 #define INPUT_LIMIT 256
 
+typedef struct token_list{
+	struct token_list * next;
+	char tokenType[INPUT_LIMIT];
+	char token[INPUT_LIMIT];
+	char usage[INPUT_LIMIT];
+} TOKEN_LIST;
+
 typedef struct arg_list {
 	struct arg_list * next;
 	char word[INPUT_LIMIT];
