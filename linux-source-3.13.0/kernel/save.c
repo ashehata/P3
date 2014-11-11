@@ -1,4 +1,4 @@
-#nclude <linux/linkage.h>
+#include <linux/linkage.h>
 #include <linux/kernel.h>
 #include <asm/uaccess.h>
 #include <ctype.h>
@@ -33,24 +33,30 @@ asmlinkage int SaveVariable(char *varname, char *vardef) {
 }
 
 asmlinkage int GetVariable(char *varname, char *vardef, int deflen){
-	
-	printk(KERN_EMERG "Entering GetVariable()");	
-
-	if (conductor !=0){
-		while (conductor->next != 0){
-			if (conductor == *varname){
-				*vardef = conductor->def;
+	printk(KERN_EMERG "Entering GetVariable()");
+	if (conductor != 0){ //ensures the memory was properly allocated
+		while (conductor->next != 0){ 			//traverses the list to find the
+			if (conductor == *varname){ 		//saved variable needed and
+				*vardef = conductor->def;	//assign the saved defintion
 			}
-			conductor = conductor->next;
+			conductor = conductor->next; //hops to the next item in the list
 		}
 	}
-	conductor->next = malloc(sizeof(struct node));
 
-	return(0);
+	return(0); //return 0 for successful run
 }
 
 asmlinkage int NextVariable(char *prevname, char *varname, int namelen, char *vardef, int deflen){
 	printk(KERN_EMERG "Entering NextVariable()");
-	
+/*	
+	if (conductor != 0){ //ensures the memory was properly allocated
+		while (conductor->next != 0){ 			//traverses the list to find the
+			if (conductor == *varname){ 		//saved variable needed and
+				*vardef = conductor->def;	//assign the saved defintion
+			}
+			conductor = conductor->next; //hops to the next item in the list
+		}
+	}
+*/
 	return(0);
 }
