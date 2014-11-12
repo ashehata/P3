@@ -88,15 +88,19 @@ command:
 	      ; 	
 
 user_command:
-	       WORD arg_list		{
+	      /* WORD arg_list		{
 						$$ = makeArgList($1, $2);
-					}
-	      | WORD			{ 
+					}*/
+	       RUN WORD			{	 makeTokenList("keyword", "run", "run", NULL);
+                        		 	 makeTokenList("word", $2, "cmd", NULL);
 
-						$$ = makeArgList($1, NULL);
+						$$ = makeArgList($2, NULL);
 					}
-          | RUN WORD    {
-                        $$ = makeArgList($2,NULL);
+              |RUN WORD arg_list   {
+						makeTokenList("keyword", "run", "run", NULL);
+						makeTokenList("word", $2, "cmd", NULL);
+						makeTokenList("word", $3, "arg", NULL);
+                       				$$ = makeArgList($2,$3);
           }
         ;
 
