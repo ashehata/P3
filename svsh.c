@@ -23,24 +23,41 @@ char* showTokens = "0";
 
 char* shellName = "svsh > ";
 
+int argCount = 1;
+
 void displayTokens(TOKEN_LIST * tokenList){
         TOKEN_LIST *myToken = tokenList;
-        while(myToken != NULL){
-                printf("Token Type: %-20s Token: %-20s Usage: %-20s\n", myToken -> tokenType, myToken -> token, myToken->usage);
+	 while(myToken != NULL){
+		printf("Token Type: %-20s Token: %-20s Usage: %-20s\n", myToken -> tokenType, myToken -> token, myToken->usage);
         myToken = myToken->next;
         }
 }
 
-void makeTokenList(char * tokenType, char * token, char * usage,TOKEN_LIST * tokenList )                   
+void makeTokenList(char * tokenType, char * token, char * usage,ARG_LIST * argList )                   
 {                                                                                                                  
 	if(strcmp(showTokens,"1")==0){
-	TOKEN_LIST * newToken = malloc(sizeof(TOKEN_LIST));                                                       
-        strncpy(newToken -> tokenType, tokenType, sizeof(newToken->tokenType));                                   
-        strncpy(newToken -> token, token, sizeof(newToken->token));                                                       
-	strncpy(newToken -> usage, usage, sizeof(newToken->usage));
-        newToken->next = tokenList;
-	tokenList = newToken;
-	displayTokens(tokenList);
+		ARG_LIST * currentArg = argList;
+		if(currentArg != NULL){
+			while(currentArg != NULL){
+				printf("Token Type: %-20s Token: %-20s Usage: arg %d\n", tokenType, currentArg->word, argCount);
+				currentArg = currentArg->next;
+				argCount++;
+			}
+		}
+		else if(strcmp(usage,"arg")==0){
+			printf("Token Type: %-20s Token: %-20s Usage: arg %d\n", tokenType, token, argCount);
+			argCount++;
+		}
+		else{
+			TOKEN_LIST * tokenList = NULL;
+			TOKEN_LIST * newToken = malloc(sizeof(TOKEN_LIST));
+			strncpy(newToken -> tokenType, tokenType, sizeof(newToken->tokenType));   
+        		strncpy(newToken -> token, token, sizeof(newToken->token));
+			strncpy(newToken -> usage, usage, sizeof(newToken->usage));
+        		newToken->next = tokenList;
+			tokenList = newToken;
+			displayTokens(tokenList);
+		}
 	}                                                                               
 }
 
@@ -50,6 +67,7 @@ void initCmdPrompt(void){
 }
 void printCmdPrompt(void){
     printf("%s", shellName);
+    argCount = 1;
 }
 
 

@@ -14,7 +14,7 @@ void yyerror(char * s);
 void printArgList(ARG_LIST * argList);
 void printTokenList(TOKEN_LIST * tokenList);
 ARG_LIST * makeArgList(char * arg, ARG_LIST * wordList);
-extern void makeTokenList(char * tokenType, char * tokenList, char * usage, TOKEN_LIST * wordList);
+extern void makeTokenList(char * tokenType, char * tokenList, char * usage, ARG_LIST * wordList);
 int yydebug = 1;
 
 %}
@@ -98,14 +98,16 @@ user_command:
 					}
               |RUN WORD arg_list   {
 						makeTokenList("keyword", "run", "run", NULL);
-						makeTokenList("word", $2, "cmd", NULL);
-						makeTokenList("word", $3, "arg", NULL);
+                                                makeTokenList("word", $2, "cmd", NULL);
+                                               // makeTokenList("word", NULL, "arg", $3);
                        				$$ = makeArgList($2,$3);
+						makeTokenList("word", NULL, "arg",$3);
           }
         ;
 
 arg_list:
-		WORD			{ $$ = makeArgList($1, NULL); }
+		WORD			{ //makeTokenList("word", $1, "arg", NULL);
+					  $$ = makeArgList($1, NULL); }
 	      |	STRING			{ $$ = makeArgList($1, NULL); }
 	      | VARIABLE		{ $$ = makeArgList($1, NULL); }
 	      | WORD arg_list		{ $$ = makeArgList($1, $2); }	
@@ -122,6 +124,7 @@ ARG_LIST * makeArgList(char * arg, ARG_LIST * argList)
 	strncpy(newEntry->word, arg, sizeof(newEntry->word));
 	newEntry->next = argList;
 	argList = newEntry;
+	//printArgList(argList);
 	return argList;
 }
 /*
