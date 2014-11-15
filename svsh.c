@@ -28,38 +28,38 @@ int argCount = 1;
 
 void displayTokens(TOKEN_LIST * tokenList){
         TOKEN_LIST *myToken = tokenList;
-	 while(myToken != NULL){
-		printf("Token Type: %-20s Token: %-20s Usage: %-20s\n", myToken -> tokenType, myToken -> token, myToken->usage);
+     while(myToken != NULL){
+        printf("Token Type: %-20s Token: %-20s Usage: %-20s\n", myToken -> tokenType, myToken -> token, myToken->usage);
         myToken = myToken->next;
         }
 }
 
 void makeTokenList(char * tokenType, char * token, char * usage,ARG_LIST * argList )                   
 {                                                                                                                  
-	if(strcmp(showTokens,"1")==0){
-		ARG_LIST * currentArg = argList;
-		if(currentArg != NULL){
-			while(currentArg != NULL){
-				printf("Token Type: %-20s Token: %-20s Usage: arg %d\n", tokenType, currentArg->word, argCount);
-				currentArg = currentArg->next;
-				argCount++;
-			}
-		}
-		else if(strcmp(usage,"arg")==0){
-			printf("Token Type: %-20s Token: %-20s Usage: arg %d\n", tokenType, token, argCount);
-			argCount++;
-		}
-		else{
-			TOKEN_LIST * tokenList = NULL;
-			TOKEN_LIST * newToken = malloc(sizeof(TOKEN_LIST));
-			strncpy(newToken -> tokenType, tokenType, sizeof(newToken->tokenType));   
-        		strncpy(newToken -> token, token, sizeof(newToken->token));
-			strncpy(newToken -> usage, usage, sizeof(newToken->usage));
-        		newToken->next = tokenList;
-			tokenList = newToken;
-			displayTokens(tokenList);
-		}
-	}                                                                               
+    if(strcmp(showTokens,"1")==0){
+        ARG_LIST * currentArg = argList;
+        if(currentArg != NULL){
+            while(currentArg != NULL){
+                printf("Token Type: %-20s Token: %-20s Usage: arg %d\n", tokenType, currentArg->word, argCount);
+                currentArg = currentArg->next;
+                argCount++;
+            }
+        }
+        else if(strcmp(usage,"arg")==0){
+            printf("Token Type: %-20s Token: %-20s Usage: arg %d\n", tokenType, token, argCount);
+            argCount++;
+        }
+        else{
+            TOKEN_LIST * tokenList = NULL;
+            TOKEN_LIST * newToken = malloc(sizeof(TOKEN_LIST));
+            strncpy(newToken -> tokenType, tokenType, sizeof(newToken->tokenType));   
+                strncpy(newToken -> token, token, sizeof(newToken->token));
+            strncpy(newToken -> usage, usage, sizeof(newToken->usage));
+                newToken->next = tokenList;
+            tokenList = newToken;
+            displayTokens(tokenList);
+        }
+    }                                                                               
 }
 
 void initCmdPrompt(void){
@@ -106,7 +106,7 @@ void addToEnvList(char * varName, char * varValue)
         /* Change the global pointer to start at newEntry */
         environList = newEntry;
     }
-}	
+}   
 
 void listEnv(){
     ENVIRON_LIST *myEntry = environList;
@@ -160,10 +160,10 @@ void builtIn(int cmd, char * str, char * varName){
             break;
         }
         case(EQUALTO):{
-		//printf("varName = %s", varName);
-		if(strcmp(varName, "$ShowTokens") ==0){
-			showTokens = str;
-		}
+        //printf("varName = %s", varName);
+        if(strcmp(varName, "$ShowTokens") ==0){
+            showTokens = str;
+        }
             addToEnvList(varName, str);
             break;
         }
@@ -172,7 +172,7 @@ void builtIn(int cmd, char * str, char * varName){
             break;
         }
         case(BYE):{
-	    exit(0);
+        exit(0);
             break;
         }
             
@@ -182,14 +182,12 @@ void builtIn(int cmd, char * str, char * varName){
 
 void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirect){
     char * path = getPath();
+    int old_stdout = dup(1);
     int argListCount = 0;
     int envListCount = 0;
     ARG_LIST * myArglist = argList;
     char output[4096];
     int bg = 0;
-
-    char buf[20];
-    int saved_stdout = dup(1);
     while(myArglist != NULL)
     {
         argListCount++;
@@ -199,20 +197,20 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     /* Copy word list to argv */
     myArglist = argList;
     int i = 0;
-	//ENVIRON_LIST * varVal = environList;
-	ENVIRON_LIST * environListIterator = environList;
+    //ENVIRON_LIST * varVal = environList;
+    ENVIRON_LIST * environListIterator = environList;
     while(myArglist != NULL)
     {
-	environListIterator = environList;
-	argv[i] = myArglist->word;
-	while(environListIterator != NULL && environListIterator->varName != myArglist->word){
-		if(strcmp(environListIterator->varName, myArglist->word)==0){
-             		argv[i] = environListIterator->varValue;
-        	}
+    environListIterator = environList;
+    argv[i] = myArglist->word;
+    while(environListIterator != NULL && environListIterator->varName != myArglist->word){
+        if(strcmp(environListIterator->varName, myArglist->word)==0){
+                    argv[i] = environListIterator->varValue;
+            }
 
-		environListIterator = environListIterator -> next;
-	}
-	myArglist = myArglist->next;
+        environListIterator = environListIterator -> next;
+    }
+    myArglist = myArglist->next;
         i++;
     }
 
@@ -253,15 +251,16 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     
     pid_t pid;
     int status;
-    int old_stdout = dup(1);
-
+   
 
     if((pid = fork()) == 0)
     {
-        int execStatus;
-        if (bg == 1){
-                freopen("/dev/null", "w", stdout);
+        if(bg == 1){
+            //int old_stdout = dup(1);
+            freopen ("/dev/null", "w", stdout); // or "nul" instead of "/dev/null"
         }
+
+        int execStatus;
         execStatus = execve(argv[0], argv, environ);
         if(execStatus < 0)
         {
@@ -279,16 +278,14 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
             }
             if (execStatus < 0){
                 printf("%s: Command not found. \n", argv[0]);   
-                fclose(stdout);         
                 exit(0);
             }
 
         }
     }
 
-    if (bg == 0){
-        sprintf(buf, "/dev/fd/%d", saved_stdout);
-        freopen(buf, "w", stdout);
+    else{
+        if (bg == 0){
         if(waitpid(pid, &status, 0) < 0)
         {
             perror("WAITPID");
@@ -298,12 +295,12 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
             int len = 0;
             //fp=fopen(outputRedirect,"r");
             if(inputRedirect != NULL){
-    	char buffer[INPUT_LIMIT];
-    	fgets(buffer, sizeof(buffer), stdin);
-    	printf("name: %s, val: %s",inputRedirect, buffer);
-    	addToEnvList(inputRedirect, buffer);
-    	}
-	if(!fp) {
+        char buffer[INPUT_LIMIT];
+        fgets(buffer, sizeof(buffer), stdin);
+        printf("name: %s, val: %s",inputRedirect, buffer);
+        addToEnvList(inputRedirect, buffer);
+        }
+    if(!fp) {
             printf("Cannot open file!\n");
             return;
         }
@@ -318,20 +315,21 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         printf("%s", output);
         }
     }
-	if(inputRedirect != NULL){
+}
+    if(inputRedirect != NULL){
     char buffer[INPUT_LIMIT];
-	FILE *fp;
-	fp = popen(*argv, "r");
-	int i = 0;
-	char temp[256];
+    FILE *fp;
+    fp = popen(*argv, "r");
+    int i = 0;
+    char temp[256];
         //fgets(buffer, sizeof(buffer), fp);
         while (fgets(buffer, sizeof(buffer), fp) != NULL){
-		//size_t len = strlen(temp);
-		  strcat(temp, buffer);
-		//puts(temp);
-		//printf("%s",temp);
-		i++;}
-	temp[strlen(temp)] = '\0';
+        //size_t len = strlen(temp);
+          strcat(temp, buffer);
+        //puts(temp);
+        //printf("%s",temp);
+        i++;}
+    temp[strlen(temp)] = '\0';
         addToEnvList(inputRedirect, temp);  
         }
     /*
@@ -343,4 +341,3 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     free(environ);
     printf("%s", output);
 }
-
