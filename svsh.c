@@ -115,14 +115,6 @@ void listEnv(){
         myEntry = myEntry->next;
     }
 }
-/*
-void displayTokens(){
-	TOKEN_LIST *myToken = tokenList;
-	while(myToken != NULL){
-		printf("Token Type: %-20s Token: %-20s Usage: %-20s\n", myToken -> tokenType, myToken -> token, myToken->usage);
-	myToken = myToken->next;
-	}
-} */
 
 void builtIn(int cmd, char * str, char * varName){
     switch(cmd){
@@ -178,26 +170,12 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
 	environListIterator = environList;
 	argv[i] = myArglist->word;
 	while(environListIterator != NULL && environListIterator->varName != myArglist->word){
-		//printf("varVal:%s ",environListIterator->varValue);
 		if(strcmp(environListIterator->varName, myArglist->word)==0){
              		argv[i] = environListIterator->varValue;
         	}
 
 		environListIterator = environListIterator -> next;
-               //printf("varVal: %s\n", varVal->varValue);
 	}
-	
-	/*if(varVal != NULL && strcmp(varVal->varName, myArglist->word)==0){
-		argv[i] = varVal->varValue;
-	}
-	else{
-		argv[i] = myArglist->word;
-	}*/
-		/*while(varVal->varName != myArglist->word && varVal != NULL){
-			varVal = varVal -> next;
-			printf("varVal: ,%s\n", varVal->varValue);
-		}
-		argv[i] = varVal;*/
 
 	myArglist = myArglist->next;
         i++;
@@ -231,48 +209,18 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         i++;
    }
     environ[i] = NULL;
-    
-   /* if (strcmp(argv[0], "assignto")){
-        outputRedirect = inputRedirect;
-    }*/
+
     
     pid_t pid;
     int status;
-   // outputRedirect = inputRedirect;
    
 
     if((pid = fork()) == 0)
     {
-        /* Child process */
-//        if(inputRedirect != NULL)
-//        {
-//            int fdIn;
-//            if((fdIn = open(inputRedirect, O_RDONLY, 0)) < 0)
-//            {
-//                perror("OPEN");
-//                exit(0);
-//            }
-//            if((status = dup2(fdIn, 0)) < 0)
-//            {
-//                perror("DUP2");
-//                exit(0);
-//            }
-//        }
-        
-/*        if(outputRedirect != NULL)
-        {
-            int fdOut;
-            if((fdOut = open(outputRedirect, O_CREAT|O_WRONLY, 0777)) < 0)
-            {
-                perror("OPEN");
-                exit(0);
-            }
-            if((status = dup2(fdOut, 1)) < 0)
-            {
-                perror("DUP2");
-                exit(0);
-            }
-        }*/
+        if(inputRedirect != NULL){
+            //int old_stdout = dup(1);
+            freopen ("/dev/null", "w", stdout); // or "nul" instead of "/dev/null"
+        }
         if(execve(argv[0], argv, environ) < 0)
         {
             printf("%s: Command not found. \n", argv[0]);			    
@@ -291,13 +239,6 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         if(inputRedirect != NULL){
 	char buffer[INPUT_LIMIT];
 	fgets(buffer, sizeof(buffer), stdin);
-	/*environListIterator = environList;
-	printf("test1\n");
-	while(environListIterator != NULL && environListIterator ->varValue != NULL){
-		environListIterator = environListIterator -> next;
-	}
-	*environListIterator->varValue = *buffer;
-	}*/
 	printf("name: %s, val: %s",inputRedirect, buffer);
 	addToEnvList(inputRedirect, buffer);
 	}
@@ -318,6 +259,8 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     }
 
 	if(inputRedirect != NULL){
+        int old_stdout = dup(1);
+        freopen ("/dev/null", "w", stdout); // or "nul" instead of "/dev/null"
         char buffer[INPUT_LIMIT];
 	FILE *fp;
 	fp = popen(*argv, "r");
@@ -325,25 +268,17 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
 	char temp[256];
         //fgets(buffer, sizeof(buffer), fp);
         while (fgets(buffer, sizeof(buffer), fp) != NULL){
-  		printf("%s %i", buffer, i);
 		//size_t len = strlen(temp);
-		strcpy(&temp[i], buffer);
-		puts(temp);
-		printf("%s",temp);
+		  strcat(temp, buffer);
+		//puts(temp);
+		//printf("%s",temp);
 		i++;}
 	temp[strlen(temp)] = '\0';
-	printf("final buf: %s",&temp[i]);
-        /*environListIterator = environList;
-        printf("test1\n");
-        while(environListIterator != NULL && environListIterator ->varValue != NULL){
-                environListIterator = environListIterator -> next;
-        }
-        *environListIterator->varValue = *buffer;
-        }*/
-        printf("name: %s, val: %s",inputRedirect, buffer);
-        addToEnvList(inputRedirect, buffer);
-        }
+        addToEnvList(inputRedirect, temp);  
+        fclose(stdout);
+        stdout = fdopen(old_stdout, "w"); 
 
+        }
     /*
      * Free memory allocated for argv and environ arrays
      */
@@ -352,8 +287,5 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         free(environ[i]);
     free(environ);
     printf("%s", output);
-    //free(environPlaceHolder);
-;
-    
 }
 
