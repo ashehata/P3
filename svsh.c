@@ -288,7 +288,21 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         char ch;
         int len = 0;
         fp=fopen(outputRedirect,"r");
-        if(!fp) {
+        if(inputRedirect != NULL){
+	char buffer[INPUT_LIMIT];
+	fgets(buffer, sizeof(buffer), stdin);
+	/*environListIterator = environList;
+	printf("test1\n");
+	while(environListIterator != NULL && environListIterator ->varValue != NULL){
+		environListIterator = environListIterator -> next;
+	}
+	*environListIterator->varValue = *buffer;
+	}*/
+	printf("name: %s, val: %s",inputRedirect, buffer);
+	addToEnvList(inputRedirect, buffer);
+	}
+
+	if(!fp) {
             printf("Cannot open file!\n");
             return;
         }
@@ -302,6 +316,34 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         output[len] = 0;
         printf("%s", output);
     }
+
+	if(inputRedirect != NULL){
+        char buffer[INPUT_LIMIT];
+	FILE *fp;
+	fp = popen(*argv, "r");
+	int i = 0;
+	char temp[256];
+        //fgets(buffer, sizeof(buffer), fp);
+        while (fgets(buffer, sizeof(buffer), fp) != NULL){
+  		printf("%s %i", buffer, i);
+		//size_t len = strlen(temp);
+		strcpy(&temp[i], buffer);
+		puts(temp);
+		printf("%s",temp);
+		i++;}
+	temp[strlen(temp)] = '\0';
+	printf("final buf: %s",&temp[i]);
+        /*environListIterator = environList;
+        printf("test1\n");
+        while(environListIterator != NULL && environListIterator ->varValue != NULL){
+                environListIterator = environListIterator -> next;
+        }
+        *environListIterator->varValue = *buffer;
+        }*/
+        printf("name: %s, val: %s",inputRedirect, buffer);
+        addToEnvList(inputRedirect, buffer);
+        }
+
     /*
      * Free memory allocated for argv and environ arrays
      */
