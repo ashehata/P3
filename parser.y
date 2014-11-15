@@ -64,7 +64,7 @@ command:
 		DEFPROMPT STRING	{		builtIn(DEFPROMPT, $2, NULL); }
 	      | PATH STRING		{ 		makeTokenList("word", "PATH", "variable_name", NULL);
 							builtIn(PATH, $2, NULL); }
-	      | VARIABLE EQUALTO STRING	{ 		builtIn(EQUALTO, $1, $3);
+	      | VARIABLE EQUALTO STRING	{ 		builtIn(EQUALTO, $3, $1);
 							makeTokenList("variable", $1,"variable_name", NULL);
 							makeTokenList("metachar", "=", "assignment",NULL);
 							makeTokenList("string", $3, "variable_def",NULL); }

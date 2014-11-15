@@ -21,9 +21,10 @@
 
 char* showTokens = "0";
 
-char* shellName = "svsh > ";
+char* shellName = "svsh> ";
 
 int argCount = 1;
+
 
 void displayTokens(TOKEN_LIST * tokenList){
         TOKEN_LIST *myToken = tokenList;
@@ -137,8 +138,8 @@ void builtIn(int cmd, char * str, char * varName){
         }
         case(EQUALTO):{
 		//printf("varName = %s", varName);
-		if(strcmp(str, "$ShowTokens") ==0){
-			showTokens = varName;
+		if(strcmp(varName, "$ShowTokens") ==0){
+			showTokens = str;
 		}
             addToEnvList(varName, str);
             break;
@@ -170,10 +171,20 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     /* Copy word list to argv */
     myArglist = argList;
     int i = 0;
+	ENVIRON_LIST * varVal = environList;
     while(myArglist != NULL)
     {
         argv[i] = myArglist->word;
-        myArglist = myArglist->next;
+	if(strcmp(varVal->varName, myArglist->word)==0){
+		argv[i] = varVal->varValue;
+	}
+		/*while(varVal->varName != myArglist->word && varVal != NULL){
+			varVal = varVal -> next;
+			printf("varVal: ,%s\n", varVal->varValue);
+		}
+		argv[i] = varVal;*/
+
+	myArglist = myArglist->next;
         i++;
     }
     argv[i] = NULL; // Last element has to be null for exec to work properly.
