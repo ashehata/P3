@@ -255,12 +255,11 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
 
     if((pid = fork()) == 0)
     {
-        if(inputRedirect != NULL){
-            //int old_stdout = dup(1);
-            freopen ("/dev/null", "w", stdout); // or "nul" instead of "/dev/null"
-        }
 
         int execStatus;
+        if (bg == 1){
+            freopen ("/dev/null", "w", stdout); // or "nul" instead of "/dev/null"
+        }
         execStatus = execve(argv[0], argv, environ);
         if(execStatus < 0)
         {
@@ -293,7 +292,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
             FILE *fp;
             char ch;
             int len = 0;
-            stdout = fdopen(old_stdout, "w"); 
+            //stdout = fdopen(old_stdout, "w"); 
             //fp=fopen(outputRedirect,"r");
             if(inputRedirect != NULL){
     	char buffer[INPUT_LIMIT];
