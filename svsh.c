@@ -316,7 +316,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         printf("%s", output);
         }
     }
-    stdout = fdopen(old_stdout, "w"); 
+    //stdout = fdopen(old_stdout, "w"); 
 	if(inputRedirect != NULL){
     char buffer[INPUT_LIMIT];
 	FILE *fp;
