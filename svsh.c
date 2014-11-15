@@ -150,7 +150,8 @@ void builtIn(int cmd, char * str, char * varName){
 }
 
 void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirect){
-	int argListCount = 0;
+	int old_stdout = dup(1);
+    int argListCount = 0;
     int envListCount = 0;
     ARG_LIST * myArglist = argList;
     char output[4096];
@@ -223,7 +224,8 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         }
         if(execve(argv[0], argv, environ) < 0)
         {
-            printf("%s: Command not found. \n", argv[0]);			    
+            printf("%s: Command not found. \n", argv[0]);	
+            fclose(stdout);		    
             exit(0);
         }
     }
@@ -275,9 +277,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
 		i++;}
 	temp[strlen(temp)] = '\0';
         addToEnvList(inputRedirect, temp);  
-        fclose(stdout);
         stdout = fdopen(old_stdout, "w"); 
-
         }
     /*
      * Free memory allocated for argv and environ arrays
