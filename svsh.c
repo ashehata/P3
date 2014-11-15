@@ -62,7 +62,8 @@ void makeTokenList(char * tokenType, char * token, char * usage,ARG_LIST * argLi
 	}                                                                               
 }
 
-void initCmdPrompt(void){    
+void initCmdPrompt(void){
+    
     
 }
 void printCmdPrompt(void){
@@ -115,11 +116,34 @@ void listEnv(){
     }
 }
 
-void listJobs(){
-    PROCESS_LIST *myEntry = processList;
-    while (myEntry != NULL){
-        printf("%s\n", myEntry->process_name);
+char* getPath(){
+    ENVIRON_LIST *myEntry = environList;
+    while (myEntry != NULL && strcmp(myEntry-> varName, "$PATH" ) != 0){
         myEntry = myEntry->next;
+    }
+    if (myEntry != NULL){
+            return myEntry->varValue;
+    }
+    else{
+        return "";
+    }
+}
+
+void listJobs(){
+    pid_t pid;
+    int status;
+    if((pid = fork()) == 0)
+    {
+        execve("/bin/ps", NULL, NULL);
+    }
+
+        if(waitpid(pid, &status, 0) < 0)
+        {
+            perror("WAITPID");
+            kill(pid, SIGKILL);
+            FILE *fp;
+            char ch;
+            int len = 0;
     }
 }
 
@@ -144,7 +168,6 @@ void builtIn(int cmd, char * str, char * varName){
             break;
         }
         case(LISTJOBS):{
-            //listEnv();
             listJobs();
             break;
         }
@@ -158,6 +181,7 @@ void builtIn(int cmd, char * str, char * varName){
 }
 
 void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirect){
+    char * path = getPath();
 	int old_stdout = dup(1);
     int argListCount = 0;
     int envListCount = 0;
@@ -235,11 +259,29 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
             //int old_stdout = dup(1);
             freopen ("/dev/null", "w", stdout); // or "nul" instead of "/dev/null"
         }
-        if(execve(argv[0], argv, environ) < 0)
+
+        int execStatus;
+        execStatus = execve(argv[0], argv, environ);
+        if(execStatus < 0)
         {
-            printf("%s: Command not found. \n", argv[0]);	
-            fclose(stdout);		    
-            exit(0);
+            //if first time failed, try adding paths.
+            char * pch;
+            char* paths[10];
+            pch = strtok (path,":");
+            while (pch != NULL && execStatus < 0)
+            {
+                char* tempPath;
+                strcpy(tempPath, pch);
+                strcat(tempPath, "/");
+                execStatus = execve(strcat(tempPath, argv[0]), argv, environ);
+                pch = strtok (NULL, ":");
+            }
+            if (execStatus < 0){
+                printf("%s: Command not found. \n", argv[0]);   
+                fclose(stdout);         
+                exit(0);
+            }
+
         }
     }
 
@@ -259,8 +301,6 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     	printf("name: %s, val: %s",inputRedirect, buffer);
     	addToEnvList(inputRedirect, buffer);
     	}
-
-
 	if(!fp) {
             printf("Cannot open file!\n");
             return;
@@ -274,21 +314,9 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         }
         output[len] = 0;
         printf("%s", output);
-    }
         }
-
-    else{
-        PROCESS_LIST * newEntry = malloc(sizeof(PROCESS_LIST));
-        strncpy(newEntry->process_name, argv[0], sizeof(newEntry->process_name));
-        newEntry->prev = NULL;
-        /* Point newEntry->next to start of global list */
-        newEntry->next = processList;
-        if(processList != NULL)
-            processList->prev = newEntry;
-        /* Change the global pointer to start at newEntry */
-        processList = newEntry;
-    }   
-
+    }
+    stdout = fdopen(old_stdout, "w"); 
 	if(inputRedirect != NULL){
     char buffer[INPUT_LIMIT];
 	FILE *fp;
