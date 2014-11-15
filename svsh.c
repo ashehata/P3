@@ -237,6 +237,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         FILE *fp;
         char ch;
         int len = 0;
+        stdout = fdopen(old_stdout, "w"); 
         fp=fopen(outputRedirect,"r");
         if(inputRedirect != NULL){
 	char buffer[INPUT_LIMIT];
@@ -261,9 +262,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     }
 
 	if(inputRedirect != NULL){
-        int old_stdout = dup(1);
-        freopen ("/dev/null", "w", stdout); // or "nul" instead of "/dev/null"
-        char buffer[INPUT_LIMIT];
+    char buffer[INPUT_LIMIT];
 	FILE *fp;
 	fp = popen(*argv, "r");
 	int i = 0;
@@ -277,7 +276,6 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
 		i++;}
 	temp[strlen(temp)] = '\0';
         addToEnvList(inputRedirect, temp);  
-        stdout = fdopen(old_stdout, "w"); 
         }
     /*
      * Free memory allocated for argv and environ arrays
