@@ -12,5 +12,6 @@ void makeTokenList(char * tokenType, char* tokenList, char * usage, ARG_LIST * a
 
 TOKEN_LIST * tokenList;
 ENVIRON_LIST * environList;
+PROCESS_LIST * processList;
 
 #endif 

@@ -23,4 +23,11 @@ typedef struct environ_list {
 	char varValue[INPUT_LIMIT];
 } ENVIRON_LIST;
 
+typedef struct process_list{
+    char process_name[INPUT_LIMIT];
+    struct process * next;
+		struct process * prev;
+
+} PROCESS_LIST;
+
 #endif /* _SVSH_STRUCTS_H_DEFINED_  */

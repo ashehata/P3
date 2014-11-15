@@ -62,8 +62,7 @@ void makeTokenList(char * tokenType, char * token, char * usage,ARG_LIST * argLi
 	}                                                                               
 }
 
-void initCmdPrompt(void){
-    
+void initCmdPrompt(void){    
     
 }
 void printCmdPrompt(void){
@@ -116,6 +115,14 @@ void listEnv(){
     }
 }
 
+void listJobs(){
+    PROCESS_LIST *myEntry = processList;
+    while (myEntry != NULL){
+        printf("%s\n", myEntry->process_name);
+        myEntry = myEntry->next;
+    }
+}
+
 void builtIn(int cmd, char * str, char * varName){
     switch(cmd){
         case(DEFPROMPT):{
@@ -137,7 +144,8 @@ void builtIn(int cmd, char * str, char * varName){
             break;
         }
         case(LISTJOBS):{
-            listEnv();
+            //listEnv();
+            listJobs();
             break;
         }
         case(BYE):{
@@ -155,6 +163,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     int envListCount = 0;
     ARG_LIST * myArglist = argList;
     char output[4096];
+    int bg = 0;
     while(myArglist != NULL)
     {
         argListCount++;
@@ -177,9 +186,13 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
 
 		environListIterator = environListIterator -> next;
 	}
-
 	myArglist = myArglist->next;
         i++;
+    }
+
+    if (strcmp(argv[i-1], "<bg>") == 0){
+        bg = 1;
+        argv[i-1] = NULL;
     }
     argv[i] = NULL; // Last element has to be null for exec to work properly.
    
@@ -229,22 +242,24 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
             exit(0);
         }
     }
-    
-    if(waitpid(pid, &status, 0) < 0)
-    {
-        perror("WAITPID");
-        kill(pid, SIGKILL);
-        FILE *fp;
-        char ch;
-        int len = 0;
-        stdout = fdopen(old_stdout, "w"); 
-        fp=fopen(outputRedirect,"r");
-        if(inputRedirect != NULL){
-	char buffer[INPUT_LIMIT];
-	fgets(buffer, sizeof(buffer), stdin);
-	printf("name: %s, val: %s",inputRedirect, buffer);
-	addToEnvList(inputRedirect, buffer);
-	}
+
+    if (bg == 0){
+        if(waitpid(pid, &status, 0) < 0)
+        {
+            perror("WAITPID");
+            kill(pid, SIGKILL);
+            FILE *fp;
+            char ch;
+            int len = 0;
+            stdout = fdopen(old_stdout, "w"); 
+            //fp=fopen(outputRedirect,"r");
+            if(inputRedirect != NULL){
+    	char buffer[INPUT_LIMIT];
+    	fgets(buffer, sizeof(buffer), stdin);
+    	printf("name: %s, val: %s",inputRedirect, buffer);
+    	addToEnvList(inputRedirect, buffer);
+    	}
+
 
 	if(!fp) {
             printf("Cannot open file!\n");
@@ -260,6 +275,19 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         output[len] = 0;
         printf("%s", output);
     }
+        }
+
+    else{
+        PROCESS_LIST * newEntry = malloc(sizeof(PROCESS_LIST));
+        strncpy(newEntry->process_name, argv[0], sizeof(newEntry->process_name));
+        newEntry->prev = NULL;
+        /* Point newEntry->next to start of global list */
+        newEntry->next = processList;
+        if(processList != NULL)
+            processList->prev = newEntry;
+        /* Change the global pointer to start at newEntry */
+        processList = newEntry;
+    }   
 
 	if(inputRedirect != NULL){
     char buffer[INPUT_LIMIT];

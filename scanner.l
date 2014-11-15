@@ -22,7 +22,6 @@ digit		[0-9]
 
 
 "#".*	  /*Ignore comments */
-"$PATH"		{ return PATH; }
 "defprompt"	{ return DEFPROMPT; }
 "cd"		{ return CD; }
 "="		{ return EQUALTO; }
@@ -30,7 +29,6 @@ digit		[0-9]
 "listjobs"	{ return LISTJOBS; }
 "bye"		{ return BYE; }
 "run"		{ return RUN; }
-"<bg>"		{ return BG; }
 
 
  [$][a-zA-Z0-9]+	{
@@ -48,7 +46,7 @@ digit		[0-9]
 				return STRING; 
 		  	 }
 
-[^><% \t\n\"]+		{
+[^% \t\n\"]+		{
 				yylval.word = strdup(yytext);
 				return WORD;
 			}
