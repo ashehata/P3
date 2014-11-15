@@ -77,10 +77,10 @@ command:
 							makeTokenList("word", $2, "arg", NULL);
 							builtIn(CD, $2, NULL); }
 	      |	BYE					{ builtIn(BYE, NULL, NULL); }
-          | ASSIGNTO VARIABLE user_command      { 	makeTokenList("keyword", "assignto", "assignto", NULL);
-							makeTokenList("word", $2, "variable_name", NULL);
+          | ASSIGNTO user_command      { 	//makeTokenList("keyword", "assignto", "assignto", NULL);
+						//	makeTokenList("word", $2, "variable_name", NULL);
 							//makeTokenList("cmd", $3, "cmd", NULL);
-							user_command($3, $2, NULL);}
+							user_command($2, NULL, NULL);}
 	      | user_command		{
 						user_command($1, NULL, NULL);
 						free($1);
@@ -103,6 +103,8 @@ user_command:
                        				$$ = makeArgList($2,$3);
 						makeTokenList("word", NULL, "arg",$3);
           }
+	     |RUN VARIABLE              {       $$ = makeArgList($2, NULL); } 
+	     |RUN VARIABLE arg_list	{	$$ = makeArgList($2, $3); } 
         ;
 
 arg_list:
@@ -110,6 +112,7 @@ arg_list:
 					  $$ = makeArgList($1, NULL); }
 	      |	STRING			{ $$ = makeArgList($1, NULL); }
 	      | VARIABLE		{ $$ = makeArgList($1, NULL); }
+	/*      | VARIABLE arg_list	{ $$ = makeArgList($1, $2); }*/
 	      | WORD arg_list		{ $$ = makeArgList($1, $2); }	
 	      | STRING arg_list		{ $$ = makeArgList($1, $2); } 
 	      ;

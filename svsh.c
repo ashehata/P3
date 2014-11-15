@@ -171,13 +171,28 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     /* Copy word list to argv */
     myArglist = argList;
     int i = 0;
-	ENVIRON_LIST * varVal = environList;
+	//ENVIRON_LIST * varVal = environList;
+	ENVIRON_LIST * environListIterator = environList;
     while(myArglist != NULL)
     {
-        argv[i] = myArglist->word;
-	if(strcmp(varVal->varName, myArglist->word)==0){
+	environListIterator = environList;
+	argv[i] = myArglist->word;
+	while(environListIterator != NULL && environListIterator->varName != myArglist->word){
+		//printf("varVal:%s ",environListIterator->varValue);
+		if(strcmp(environListIterator->varName, myArglist->word)==0){
+             		argv[i] = environListIterator->varValue;
+        	}
+
+		environListIterator = environListIterator -> next;
+               //printf("varVal: %s\n", varVal->varValue);
+	}
+	
+	/*if(varVal != NULL && strcmp(varVal->varName, myArglist->word)==0){
 		argv[i] = varVal->varValue;
 	}
+	else{
+		argv[i] = myArglist->word;
+	}*/
 		/*while(varVal->varName != myArglist->word && varVal != NULL){
 			varVal = varVal -> next;
 			printf("varVal: ,%s\n", varVal->varValue);
@@ -188,13 +203,14 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         i++;
     }
     argv[i] = NULL; // Last element has to be null for exec to work properly.
-    
-    ENVIRON_LIST * environListIterator = environList;
+   
+    environListIterator = environList;
     while(environListIterator != NULL)
     {
         envListCount++;
         environListIterator = environListIterator->next;
     }
+   
     /*
      * NOTE: The environ array has to be able to hold a string of size "[256]=[256]"
      */
@@ -213,16 +229,16 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         strcat(environ[i], environListIterator->varValue);
         environListIterator = environListIterator->next;
         i++;
-    }
+   }
     environ[i] = NULL;
     
-    if (strcmp(argv[0], "assignto")){
+   /* if (strcmp(argv[0], "assignto")){
         outputRedirect = inputRedirect;
-    }
+    }*/
     
     pid_t pid;
     int status;
-    outputRedirect = inputRedirect;
+   // outputRedirect = inputRedirect;
    
 
     if((pid = fork()) == 0)
@@ -243,7 +259,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
 //            }
 //        }
         
-        if(outputRedirect != NULL)
+/*        if(outputRedirect != NULL)
         {
             int fdOut;
             if((fdOut = open(outputRedirect, O_CREAT|O_WRONLY, 0777)) < 0)
@@ -256,7 +272,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
                 perror("DUP2");
                 exit(0);
             }
-        }
+        }*/
         if(execve(argv[0], argv, environ) < 0)
         {
             printf("%s: Command not found. \n", argv[0]);			    
@@ -295,9 +311,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     free(environ);
     printf("%s", output);
     //free(environPlaceHolder);
-
-
+;
     
 }
-
 

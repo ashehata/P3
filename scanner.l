@@ -53,7 +53,7 @@ digit		[0-9]
 				return WORD;
 			}
 
- [#|=] 			{
+[#|=] 			{
 				yylval.metachar = strdup(yytext);
 				return METACHAR;
 			}
