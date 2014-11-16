@@ -1,7 +1,7 @@
 #include <linux/linkage.h>
 #include <linux/kernel.h>
 #include <asm/uaccess.h>
-#include <string.h>
+#include <linux/string.h>
 
 #define ROWS 20
 #define COLUMNS 2
@@ -12,8 +12,8 @@ char* Variables[ROWS][COLUMNS];
 //SaveVariable
 asmlinkage int SaveVariable(char __user *varname, char __user *vardef) {
 
-        char* name = varname;	//Buffer for the variable's name
-        char* def = vardef;	//Buffer for the variable's definition
+        char* name;	//Buffer for the variable's name
+        char* def;	//Buffer for the variable's definition
         int i = 0;		//initialized i for the for loop
 	
 	//name = *varname;
