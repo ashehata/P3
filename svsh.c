@@ -132,8 +132,10 @@ char* getPath(){
 void listJobs(){
     pid_t pid;
     int status;
-    char *newargv[] = { "/bin/ps", NULL };
-    char *newenviron[] = { NULL };
+    int shellpid = getpid();
+    char strpid[50];
+    sprintf(strpid, "%d", shellpid);
+    char *newargv[] = { "/usr/bin/pgrep","-P", strpid, "-l", NULL };
 
     if((pid = fork()) == 0)
     {
@@ -142,10 +144,7 @@ void listJobs(){
         if(waitpid(pid, &status, 0) < 0)
         {
             perror("WAITPID");
-            kill(pid, SIGKILL);
-            FILE *fp;
-            char ch;
-            int len = 0;
+            //kill(pid, SIGKILL);
     }
 }
 
