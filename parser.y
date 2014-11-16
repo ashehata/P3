@@ -77,9 +77,10 @@ command:
 							makeTokenList("word", $2, "arg", NULL);
 							builtIn(CD, $2, NULL); }
 	      |	BYE					{ builtIn(BYE, NULL, NULL); }
-          | ASSIGNTO VARIABLE arg_list      { 	//makeTokenList("keyword", "assignto", "assignto", NULL);
-						//	makeTokenList("word", $2, "variable_name", NULL);
-							//makeTokenList("cmd", $3, "cmd", NULL);
+          | ASSIGNTO VARIABLE arg_list      { 		makeTokenList("keyword", "assignto", "assignto", NULL);
+							makeTokenList("word", $2, "variable_name", NULL);
+							makeTokenList("word", NULL, "arg", $3);
+						//	makeTokenList("cmd", $3, "cmd", NULL);
 						//	builtIn(EQUALTO, NULL, $2);
 						//	$$ = makeArgList(NULL, $3);
 							user_command($3, $2, NULL);
@@ -102,12 +103,18 @@ user_command:
               |RUN WORD arg_list   {
 						makeTokenList("keyword", "run", "run", NULL);
                                                 makeTokenList("word", $2, "cmd", NULL);
-                                               // makeTokenList("word", NULL, "arg", $3);
+                                                makeTokenList("word", NULL, "arg", $3);
                        				$$ = makeArgList($2,$3);
-						makeTokenList("word", NULL, "arg",$3);
+						//makeTokenList("word", NULL, "arg",$3);
           }
-	     |RUN VARIABLE              {       $$ = makeArgList($2, NULL); } 
-	     |RUN VARIABLE arg_list	{	$$ = makeArgList($2, $3); } 
+	     |RUN VARIABLE              {       makeTokenList("keyword", "run", "run", NULL);
+                                                makeTokenList("variable", $2, "variable_name", NULL);
+						$$ = makeArgList($2, NULL); } 
+
+	     |RUN VARIABLE arg_list	{	makeTokenList("keyword", "run", "run", NULL);
+                                                makeTokenList("variable", $2, "variable_name", NULL);
+						makeTokenList("word", NULL, "arg", $3);
+						$$ = makeArgList($2, $3); } 
         ;
 
 arg_list:
