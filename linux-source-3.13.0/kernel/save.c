@@ -12,9 +12,9 @@ char* Variables[ROWS][COLUMNS];
 //SaveVariable
 asmlinkage int SaveVariable(char __user *varname, char __user *vardef) {
 
-        char* name;	//Buffer for the variable's name
-        char* def;	//Buffer for the variable's definition
-        int i = 0;		//initialized i for the for loop
+        char* name;			//Buffer for the variable's name
+        char* def;			//Buffer for the variable's definition
+        int i = 0;			//initialized i for the for loop
 	
 	//name = *varname;
 	//def = *vardef;
@@ -52,25 +52,24 @@ asmlinkage int SaveVariable(char __user *varname, char __user *vardef) {
 //GetVariable
 asmlinkage int GetVariable(char __user *varname, char __user *vardef, int deflen) {
 
-        char name[MAX_BUF_SIZE]; //Buffer for the variable's name
-        char def[MAX_BUF_SIZE]; //Buffer for the variable's definition
+        char* name;	 	//Buffer for the variable's name
+        int i = 0;		//initialized i for the for loop
 
-//Error handling & copying from user space to kernel
-        if(copy_from_user(name2, varname, MAX_BUF_SIZE)){
+//Error handling
+        if(copy_from_user(name, varname, MAX_BUF_SIZE)){
                 printk(KERN_EMERG "GetVariable failed: copy_from_user() error");
                 return (-1);
         }
 
 //Finding the variable
-        int i = 0;
-        for(i = 0; f < ROWS; i++){
-                if(Variables[i][0] == name2){		//Successfully found the variable
-                        copy_to_user(vardef, Variables[i][1], deflen);
+        for(i = 0; i < ROWS; i++){
+                if(Variables[i][0] == name){           //Successfully found the variable
+                        vardef = Variables[i][1];
                         printk(KERN_EMERG "Successfully retrieved the definition of %s = %s!\n", Variables[i][0], Variables[i][1]);
                         return (0);
                 }
-                else if (i == (ROWS-1)){			//If not found, return error
-                        printk(KERN_EMERG "GetVariable failed: Variable not found!\n", name2);
+                else if (i == (ROWS-1)){               //If not found, return error
+                        printk(KERN_EMERG "GetVariable failed: Variable %s not found!\n", name);
                         return (-1);
                 }
         }
