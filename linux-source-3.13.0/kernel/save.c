@@ -12,40 +12,40 @@ char* Variables[ROWS][COLUMNS];
 //SaveVariable
 asmlinkage int SaveVariable(char __user *varname, char __user *vardef) {
 
-        char* name = varname; //Buffer for the variable's name
-        char* def = vardef;  //Buffer for the variable's definition
-        int i = 0;               //initialized i for the for loop
+        char* name = varname;	//Buffer for the variable's name
+        char* def = vardef;	//Buffer for the variable's definition
+        int i = 0;		//initialized i for the for loop
 	
 	//name = *varname;
 	//def = *vardef;
 	
-//Error handling
-        if(copy_from_user(name, varname, MAX_BUF_SIZE)){
-                printk(KERN_EMERG "SaveVariable failed: copy_from_user() error"); //Copy varname from the user space
+//Error handling & copying from user space to kernel
+        if(copy_from_user(name, varname, MAX_BUF_SIZE)){	//Copy varname from the user space
+                printk(KERN_EMERG "SaveVariable failed: copy_from_user() error");
                 return (-1);
         }
-        if(copy_from_user(def, vardef, MAX_BUF_SIZE)){
-                printk(KERN_EMERG "SaveVariable failed: copy_from_user() error"); //Copy vardef from the user space
+        if(copy_from_user(def, vardef, MAX_BUF_SIZE)){		//Copy vardef from the user space
+                printk(KERN_EMERG "SaveVariable failed: copy_from_user() error");
                 return (-1);
         }
 
 //Saving the variable
         for(i = 0; i < ROWS; i++){
-                if (i == (ROWS-1)){                     //If out of memory 
+                if (i == (ROWS-1)){				//If out of memory 
 						printk(KERN_EMERG "SaveVariable failed: Out of memory!\n");
                         return (-1);
                 }
-                else if (Variables[i][0] == name){      //If the variable does already exist
+                else if (Variables[i][0] == name){      	//If the variable does already exist
                         printk(KERN_EMERG "Variable %s already exists, %s is now assigned to %s!\n", name, name, def);
                         Variables[i][1] = def;
                         return (0);
                 }
-                else{          //If the variable doesn't already exists
+                else{						//If the variable doesn't already exists
                         printk(KERN_EMERG "Added to memory, variable %s = %s added!\n", name, def);
                         Variables[i][0] = name;
                         Variables[i][1] = def;
                         return (0);
-				}
+		}
         }
 }
 
@@ -55,7 +55,7 @@ asmlinkage int GetVariable(char __user *varname, char __user *vardef, int deflen
         char name[MAX_BUF_SIZE]; //Buffer for the variable's name
         char def[MAX_BUF_SIZE]; //Buffer for the variable's definition
 
-//Error handling
+//Error handling & copying from user space to kernel
         if(copy_from_user(name2, varname, MAX_BUF_SIZE)){
                 printk(KERN_EMERG "GetVariable failed: copy_from_user() error");
                 return (-1);
