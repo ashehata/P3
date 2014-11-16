@@ -189,11 +189,21 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     ARG_LIST * myArglist = argList;
     char output[4096];
     int bg = 0;
+    char assignToArgv[10000];
+    int x;
+    for (x = 0; x<10000-1 ; x++){
+        assignToArgv[x]= NULL;
+    }
     while(myArglist != NULL)
     {
+        strcat(assignToArgv, myArglist->word);
+        strcat(assignToArgv, " ");
         argListCount++;
         myArglist = myArglist->next;
     }
+    char* myAssign[2];
+    myAssign[0] =  assignToArgv;
+    myAssign[1] = NULL;
     char ** argv = malloc((argListCount + 1) * sizeof(char[INPUT_LIMIT]));
     /* Copy word list to argv */
     myArglist = argList;
@@ -286,48 +296,29 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
 
         }
     }
- if(waitpid(pid, &status, 0) < 0)
-    {
-        perror("WAITPID");
-        kill(pid, SIGKILL);
-        FILE *fp;
-        char ch;
-        int len = 0;
-        fp=fopen(outputRedirect,"r");
-        if(inputRedirect != NULL){
-    char buffer[INPUT_LIMIT];
-    fgets(buffer, sizeof(buffer), stdin);
-    /*environListIterator = environList;
-    printf("test1\n");
-    while(environListIterator != NULL && environListIterator ->varValue != NULL){
-        environListIterator = environListIterator -> next;
-    }
-    *environListIterator->varValue = *buffer;
-    }*/
-    printf("name: %s, val: %s",inputRedirect, buffer);
-    addToEnvList(inputRedirect, buffer);
-    }
-
-    if(!fp) {
-            printf("Cannot open file!\n");
-            return;
-        }
-        ch=fgetc(fp);
-        while(ch != EOF && ch!= '\n' && len < 30)
+    if (bg == 0){
+        if(waitpid(pid, &status, 0) < 0)
         {
-            output[len] = ch;
-            len++;
-            ch=fgetc(fp);
+            perror("WAITPID");
+            kill(pid, SIGKILL);
+            FILE *fp;
+            char ch;
+            int len = 0;
+            fp=fopen(outputRedirect,"r");
         }
-        output[len] = 0;
     }
 
     if(inputRedirect != NULL){
-    char buffer[INPUT_LIMIT];
+    char buffer[10000];
     FILE *fp;
-    fp = popen(*argv, "r");
+    fp = popen(*myAssign, "r");
     int i = 0;
-    char temp[256];
+    char temp[10000];
+    for (i = 0; i<10000-1;i++){
+        buffer[i] = NULL;
+        temp[i] = NULL;
+    }
+    i = 0;
         //fgets(buffer, sizeof(buffer), fp);
         while (fgets(buffer, sizeof(buffer), fp) != NULL){
         //size_t len = strlen(temp);
@@ -336,7 +327,9 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         //printf("%s",temp);
         i++;}
     temp[strlen(temp)] = '\0';
-        addToEnvList(inputRedirect, temp);  
+        addToEnvList(inputRedirect, temp); 
+        fflush(fp); 
+
         }
     /*
      * Free memory allocated for argv and environ arrays
@@ -345,5 +338,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     for(i = 0; i <= envListCount; i++)
         free(environ[i]);
     free(environ);
-    printf("%s", output);
+    if (bg == 0){
+   //printf("%s", output);
+    }
 }

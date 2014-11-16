@@ -1,7 +1,7 @@
 #ifndef _SVSH_STRUCTS_H_
 #define _SVSH_STRUCTS_H_
 
-#define INPUT_LIMIT 256
+#define INPUT_LIMIT 40000
 
 typedef struct token_list{
 	struct token_list * next;
