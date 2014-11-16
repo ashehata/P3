@@ -132,8 +132,10 @@ char* getPath(){
 void listJobs(){
     pid_t pid;
     int status;
-    char *newargv[] = { "/bin/ps", NULL };
-    char *newenviron[] = { NULL };
+    int shellpid = getpid();
+    char strpid[50];
+    sprintf(strpid, "%d", shellpid);
+    char *newargv[] = { "/usr/bin/pgrep","-P", strpid, "-l", NULL };
 
     if((pid = fork()) == 0)
     {
@@ -142,10 +144,7 @@ void listJobs(){
         if(waitpid(pid, &status, 0) < 0)
         {
             perror("WAITPID");
-            kill(pid, SIGKILL);
-            FILE *fp;
-            char ch;
-            int len = 0;
+            //kill(pid, SIGKILL);
     }
 }
 
@@ -187,12 +186,11 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     int argListCount = 0;
     int envListCount = 0;
     ARG_LIST * myArglist = argList;
-    char output[4096];
     int bg = 0;
     char assignToArgv[10000];
     int x;
     for (x = 0; x<10000-1 ; x++){
-        assignToArgv[x]= NULL;
+        assignToArgv[x]= 0;
     }
     while(myArglist != NULL)
     {
@@ -266,7 +264,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
 
     if((pid = fork()) == 0)
     {
-        if(bg == 1){
+        if(bg == 1 || inputRedirect != NULL){
             freopen("/dev/null", "w", stdout); // or "nul" instead of "/dev/null"
         }
 
@@ -301,10 +299,6 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         {
             perror("WAITPID");
             kill(pid, SIGKILL);
-            FILE *fp;
-            char ch;
-            int len = 0;
-            fp=fopen(outputRedirect,"r");
         }
     }
 
@@ -315,8 +309,8 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     int i = 0;
     char temp[10000];
     for (i = 0; i<10000-1;i++){
-        buffer[i] = NULL;
-        temp[i] = NULL;
+        buffer[i] = 0;
+        temp[i] = 0;
     }
     i = 0;
         //fgets(buffer, sizeof(buffer), fp);
