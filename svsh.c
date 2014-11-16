@@ -132,11 +132,13 @@ char* getPath(){
 void listJobs(){
     pid_t pid;
     int status;
+    char *newargv[] = { "/bin/ps", NULL };
+    char *newenviron[] = { NULL };
+
     if((pid = fork()) == 0)
     {
-        execve("/bin/ps", NULL, NULL);
+        execve(newargv[0], newargv, NULL);
     }
-
         if(waitpid(pid, &status, 0) < 0)
         {
             perror("WAITPID");
@@ -182,7 +184,6 @@ void builtIn(int cmd, char * str, char * varName){
 
 void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirect){
     char * path = getPath();
-    int old_stdout = dup(1);
     int argListCount = 0;
     int envListCount = 0;
     ARG_LIST * myArglist = argList;
@@ -256,8 +257,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     if((pid = fork()) == 0)
     {
         if(bg == 1){
-            //int old_stdout = dup(1);
-            freopen ("/dev/null", "w", stdout); // or "nul" instead of "/dev/null"
+            freopen("/dev/null", "w", stdout); // or "nul" instead of "/dev/null"
         }
 
         int execStatus;
@@ -320,36 +320,24 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
             ch=fgetc(fp);
         }
         output[len] = 0;
-        printf("%s", output);
     }
 
     if(inputRedirect != NULL){
-        char buffer[INPUT_LIMIT];
+    char buffer[INPUT_LIMIT];
     FILE *fp;
     fp = popen(*argv, "r");
     int i = 0;
     char temp[256];
         //fgets(buffer, sizeof(buffer), fp);
         while (fgets(buffer, sizeof(buffer), fp) != NULL){
-        printf("%s %i", buffer, i);
         //size_t len = strlen(temp);
-        strcpy(&temp[i], buffer);
-        puts(temp);
-        printf("%s",temp);
+          strcat(temp, buffer);
+        //puts(temp);
+        //printf("%s",temp);
         i++;}
     temp[strlen(temp)] = '\0';
-    printf("final buf: %s",&temp[i]);
-        /*environListIterator = environList;
-        printf("test1\n");
-        while(environListIterator != NULL && environListIterator ->varValue != NULL){
-                environListIterator = environListIterator -> next;
+        addToEnvList(inputRedirect, temp);  
         }
-        *environListIterator->varValue = *buffer;
-        }*/
-        printf("name: %s, val: %s",inputRedirect, buffer);
-        addToEnvList(inputRedirect, buffer);
-        }
-
     /*
      * Free memory allocated for argv and environ arrays
      */
@@ -358,7 +346,4 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         free(environ[i]);
     free(environ);
     printf("%s", output);
-    //free(environPlaceHolder);
-;
-    
 }
