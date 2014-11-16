@@ -265,15 +265,18 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         if(execStatus < 0)
         {
             //if first time failed, try adding paths.
+            
+            char myPaths[256];
+            strcpy(myPaths, path); 
             char * pch;
-            char* paths[10];
-            pch = strtok (path,":");
+            pch = strtok (myPaths,":");
             while (pch != NULL && execStatus < 0)
             {
-                char* tempPath;
-                strcpy(tempPath, pch);
-                strcat(tempPath, "/");
-                execStatus = execve(strcat(tempPath, argv[0]), argv, environ);
+                char temp[256];
+                strcpy (temp, pch);
+                strcat(temp, "/");
+                strcat(temp, argv[0]);
+                execStatus = execve(temp, argv, environ);
                 pch = strtok (NULL, ":");
             }
             if (execStatus < 0){
