@@ -7,44 +7,45 @@
 #define COLUMNS 2
 #define MAX_BUF_SIZE 128
 
-extern char *Variables[ROWS][COLUMNS];
+char* Variables[ROWS][COLUMNS];
 
 //SaveVariable
 asmlinkage int SaveVariable(char __user *varname, char __user *vardef) {
 
-        char name[MAX_BUF_SIZE]; //Buffer for the variable's name
-        char def[MAX_BUF_SIZE];  //Buffer for the variable's definition
-
+        char* name = varname; //Buffer for the variable's name
+        char* def = vardef;  //Buffer for the variable's definition
+        int i = 0;               //initialized i for the for loop
+	
+	//name = *varname;
+	//def = *vardef;
+	
 //Error handling
         if(copy_from_user(name, varname, MAX_BUF_SIZE)){
-                printk(KERN_EMERG "SaveVariable failed: copy_from_user() error"); //Copy the argument from the user
+                printk(KERN_EMERG "SaveVariable failed: copy_from_user() error"); //Copy varname from the user space
                 return (-1);
         }
         if(copy_from_user(def, vardef, MAX_BUF_SIZE)){
-                printk(KERN_EMERG "SaveVariable failed: copy_from_user() error"); //Copy the argument from the user
+                printk(KERN_EMERG "SaveVariable failed: copy_from_user() error"); //Copy vardef from the user space
                 return (-1);
         }
-		
+
 //Saving the variable
-        int i = 0;
         for(i = 0; i < ROWS; i++){
-                if(Variables[i][0] == NULL){		//If the variable doesn't already exists
-                        printk(KERN_EMERG "Added to memory, variable %s = %s added!\n", name, def);
-                        Variables[i][0] = name;
-                        Variables[i][1] = def;
-                        return (0);
+                if (i == (ROWS-1)){                     //If out of memory 
+						printk(KERN_EMERG "SaveVariable failed: Out of memory!\n");
+                        return (-1);
                 }
-                else if (Variables[i][0] == name){	//If the variable does already exist
+                else if (Variables[i][0] == name){      //If the variable does already exist
                         printk(KERN_EMERG "Variable %s already exists, %s is now assigned to %s!\n", name, name, def);
                         Variables[i][1] = def;
                         return (0);
                 }
-                else{
-                        if (i == (ROWS-1)){			//If out of memory
-                                printk(KERN_EMERG "SaveVariable failed: Out of memory!\n");
-                                return (-1);
-                        }
-                }
+                else{          //If the variable doesn't already exists
+                        printk(KERN_EMERG "Added to memory, variable %s = %s added!\n", name, def);
+                        Variables[i][0] = name;
+                        Variables[i][1] = def;
+                        return (0);
+				}
         }
 }
 
