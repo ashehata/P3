@@ -89,9 +89,10 @@ command:
 						user_command($1, NULL, NULL);
 						free($1);
 					}
-		  | SYS_VARIABLE EQUALTO STRING {
-		  					
-		  }
+		  | SYS_VARIABLE EQUALTO STRING  {
+		 					printf("Found sys variable");
+		 				}
+
 	      ; 	
 
 user_command:

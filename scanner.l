@@ -31,15 +31,15 @@ digit		[0-9]
 "run"		{ return RUN; }
 
 
- [$][a-zA-Z0-9]+	{
+[$][a-zA-Z0-9]+	{
 				yylval.variable = strdup(yytext);
 				return VARIABLE;
 			}
 
-[a-zA-z0-9]+	{
+[@][a-zA-Z0-9]+	{
 				yylval.variable = strdup(yytext);
 				return SYS_VARIABLE;
-}
+			}
 
 \"(\\.|[^\\"])*\" 	 {	
 				yylval.str = strdup(yytext);
@@ -60,5 +60,6 @@ digit		[0-9]
 				yylval.metachar = strdup(yytext);
 				return METACHAR;
 			}
+
 
 %%
