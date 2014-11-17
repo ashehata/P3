@@ -851,4 +851,5 @@ asmlinkage long sys_finit_module(int fd, const char __user *uargs, int flags);
 /* Our new kernel system calls*/
 asmlinkage int SaveVariable(char __user *varname, char __user *vardef);
 asmlinkage int GetVariable(char __user *varname, char __user *vardef, int deflen);
+asmlinkage int NextVariable(char *prevname, char *varname, int namelen, char *vardef, int deflen);
 #endif

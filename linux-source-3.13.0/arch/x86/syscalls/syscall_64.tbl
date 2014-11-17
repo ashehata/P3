@@ -322,6 +322,7 @@
 313	common	finit_module		sys_finit_module
 314	common	save			SaveVariable
 315	common	save			GetVariable
+316	common	save			NextVariable
 #
 # x32-specific system call numbers start at 512 to avoid cache impact
 # for native 64-bit operation.
