@@ -33,7 +33,7 @@ int yydebug = 1;
 %token <str> STRING
 %token <word> WORD
 %token <metachar> METACHAR EQUALTO
-%token <variable> VARIABLE
+%token <variable> VARIABLE SYS_VARIABLE
 %type <argList> arg_list user_command
 /*%type <tokenList> user_command*/
 %type <str> command
@@ -89,6 +89,9 @@ command:
 						user_command($1, NULL, NULL);
 						free($1);
 					}
+		  | SYS_VARIABLE EQUALTO STRING {
+		  					
+		  }
 	      ; 	
 
 user_command:

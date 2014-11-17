@@ -36,6 +36,11 @@ digit		[0-9]
 				return VARIABLE;
 			}
 
+[a-zA-z0-9]+	{
+				yylval.variable = strdup(yytext);
+				return SYS_VARIABLE;
+}
+
 \"(\\.|[^\\"])*\" 	 {	
 				yylval.str = strdup(yytext);
 				/* Strip the quotes from the string literal */
