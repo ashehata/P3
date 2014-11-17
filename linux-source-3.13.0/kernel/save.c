@@ -31,7 +31,7 @@ asmlinkage int SaveVariable(char __user *varname, char __user *vardef) {
 
 //Saving the variable
         for(i = 0; i < ROWS; i++){
-                if (i == (ROWS-1)){				//If out of memory 
+                if (i == (ROWS-1)){							//If out of memory 
 						printk(KERN_EMERG "SaveVariable failed: Out of memory!\n");
                         return (-1);
                 }
@@ -40,19 +40,18 @@ asmlinkage int SaveVariable(char __user *varname, char __user *vardef) {
                         Variables[i][1] = def;
                         return (0);
                 }
-                else{						//If the variable doesn't already exists
+                else{										//If the variable doesn't already exists
                         printk(KERN_EMERG "Added to memory, variable %s = %s added!\n", name, def);
                         Variables[i][0] = name;
                         Variables[i][1] = def;
                         return (0);
-		}
+				}
         }
 }
 
-//GetVariable
 asmlinkage int GetVariable(char __user *varname, char __user *vardef, int deflen) {
 
-        char* name;	 	//Buffer for the variable's name
+        char* name; 	//Buffer for the variable's name
         int i = 0;		//initialized i for the for loop
 
 //Error handling
@@ -64,7 +63,7 @@ asmlinkage int GetVariable(char __user *varname, char __user *vardef, int deflen
 //Finding the variable
         for(i = 0; i < ROWS; i++){
                 if(Variables[i][0] == name){           //Successfully found the variable
-                        vardef = Variables[i][1];
+                        copy_to_user(Variables[i][1],vardef,MAX_BUF_SIZE);
                         printk(KERN_EMERG "Successfully retrieved the definition of %s = %s!\n", Variables[i][0], Variables[i][1]);
                         return (0);
                 }
@@ -76,38 +75,38 @@ asmlinkage int GetVariable(char __user *varname, char __user *vardef, int deflen
 }
 
 //NextVariable
-asmlinkage int NextVariable(char __user *prevname, char __user *varname, int namelen, char __user *vardef, int deflen) {
+asmlinkage int NextVariable(char *prevname, char *varname, int namelen, char *vardef, int deflen) {
 
-        char prev[MAX_BUF_SIZE]; //Buffer for the previous variable in the array
+        char* prev; //Buffer for the previous variable in the array
+        int i = 0;
 
 //Error handling
-        if(copy_from_user(prev, prevname, MAX_BUF_SIZE)){ 	//Copy the argument from the user
+        if(copy_from_user(prev, prevname, MAX_BUF_SIZE)){       //Copy the argument from the user
                 printk(KERN_EMERG "NextVariable failed: copy_from_user error!");
         }
 
-//Finding the next variable based on the previous variable
-        int i = 0;
+//Finding next variable based on previous variable
         for(i = 0; i < ROWS; i++){
-                if(prev == ""){		//starting at the root or original variable in array
+                if(prev == ""){        //starting at root or original value in array
                         copy_to_user(varname, Variables[0][0], namelen);
                         copy_to_user(vardef, Variables[0][1], deflen);
-                        printk(KERN_EMERG "%s = %s\n", Variables[0][0], Variables[0][1]); //prints the first variable
+                        printf("%s = %s\n", Variables[0][0], Variables[0][1]); //prints the first variable
                         return (0);
                 }
-                else if(prev == Variables[i][0]){	//not at the beginning of the array of variables
+                else if(prev == Variables[i][0]){       //not at the beginning of the array of variables
                         if(Variables[i+1][0] != NULL){
                                 copy_to_user(varname, Variables[i+1][0], namelen);
                                 copy_to_user(vardef, Variables[i+1][1], deflen);
-                                printk(KERN_EMERG "%s = %s\n", Variables[i+1][0], Variables[i+1][1]); //prints the next variables
+                                printf("%s = %s\n", Variables[i+1][0], Variables[i+1][1]); //prints the next variables
                                 return (0);
                         }
-                        else if (Variables[i+1][0] == NULL){	//When finished with the array of variables
-                                printk(KERN_EMERG "NextVariable failed: End of array!\n");
+                        else if (Variables[i+1][0] == NULL){    //When finished with the array of variables
+                                printf("NextVariable failed: End of array!\n");
                                 return (-1);
                         }
                 }
-                else if(i = (ROWS-1)){		//if the variable was not found
-                        printk(KERN_EMERG "NextVariable failed: The previous variable was not found!\n");
+                else if(i == (ROWS-1)){          //if the variable was not found
+                        printf("NextVariable failed: The previous variable was not found!\n");
                         return (-1);
                 }
         }
