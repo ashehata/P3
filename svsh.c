@@ -225,7 +225,13 @@ void user_command(ARG_LIST * argList, char * assigntoVar){
            
         environListIterator = environListIterator -> next;                                            
         }
-	char *  globalVarValue = "";
+
+	char *glbalVarValue;
+	retval = syscall(__NR_GetVariable, myArglist->word, &globalVarValue, 256);
+	if(retval != -1){
+		argv[i] = globalVarValue;
+	}
+	/*char *  globalVarValue = "";
         char * globalVarName = "";                                                                    
         char * globalVarTemp;
 	int retval = 0;
@@ -236,7 +242,7 @@ void user_command(ARG_LIST * argList, char * assigntoVar){
                 }
                 retval = syscall(__NR_NextVariable,globalVarName, &globalVarTemp,256,256);            
                 globalVarName = globalVarTemp;                                                       
-        }
+        }*/
     myArglist = myArglist->next;
         i++;                                                                                          
     }
