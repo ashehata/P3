@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <sys/syscall.h>
 #include "svsh_structs.h"
 #include "svsh.h"
 #include "y.tab.h"
@@ -161,9 +162,12 @@ void builtIn(int cmd, char * str, char * varName){
             break;
         }
         case(EQUALTO):{
-        //printf("varName = %s", varName);
         if(strcmp(varName, "$ShowTokens") ==0){
             showTokens = str;
+	    syscall(__NR_SaveVariable,varName, str);
+	}
+	if(strcmp(varName, "$PATH")==0){
+		syscall(__NR_SaveVariable,varName, str);	
         }
             addToEnvList(varName, str);
             break;
@@ -182,7 +186,7 @@ void builtIn(int cmd, char * str, char * varName){
 }
 
 void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirect){
-    char * path = getPath();
+	char * path = getPath();
     int argListCount = 0;
     int envListCount = 0;
     ARG_LIST * myArglist = argList;
@@ -208,21 +212,35 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
     int i = 0;
     //ENVIRON_LIST * varVal = environList;
     ENVIRON_LIST * environListIterator = environList;
-    while(myArglist != NULL)
-    {
-    environListIterator = environList;
-    argv[i] = myArglist->word;
+
+    while(myArglist != NULL)                                                                          
+    {                                                                                                 
+    environListIterator = environList;                                                                
+    argv[i] = myArglist->word;                                                                        
+    /* ADD SYSTEM VARIABLE GET VAR HERE */                                  
     while(environListIterator != NULL && environListIterator->varName != myArglist->word){
-        if(strcmp(environListIterator->varName, myArglist->word)==0){
+        //getNextVariable(globalVarValue, globalVar )                                                 
+        if(strcmp(environListIterator->varName, myArglist->word)==0){                                 
                     argv[i] = environListIterator->varValue;
-            }
-
-        environListIterator = environListIterator -> next;
-    }
+            }       
+           
+        environListIterator = environListIterator -> next;                                            
+        }
+	char *  globalVarValue = "";
+        char * globalVarName = "";                                                                    
+        char * globalVarTemp;
+	int retval = 0;
+	while(globalVarName != myArglist->word && retval != -1){
+                syscall(__NR_GetVariable,globalVarName, globalVarValue, 256); //ADD get global system call function                                   
+                if(strcmp(myArglist->word, globalVarName)==0){
+                        argv[i] = globalVarValue;                                                     
+                }
+                retval = syscall(__NR_NextVariable,globalVarName, &globalVarTemp,256,256);            
+                globalVarName = globalVarTemp;                                                       
+        }
     myArglist = myArglist->next;
-        i++;
+        i++;                                                                                          
     }
-
     if (strcmp(argv[i-1], "<bg>") == 0){
         bg = 1;
         argv[i-1] = NULL;

@@ -1,0 +1,90 @@
+Larry Williamson
+Kayla Shao
+Aly Shehata
+Errol Lepianka
+
+Date 11/17/14
+doc.txt
+
+The Shared Variable Shell (svsh)
+
+
+The shared variable shell is capable of using Unix system commands to create global variables
+accessible to other shells immediately. Global variables are defined in the form @variable_name 
+(i.e. prefixed with an @).
+
+The shell also accepts $PATH containing a list of directories where the shell will look to find
+the file to be executed (separated by colons :). 
+
+The $ShowTokens variable can be set to 1 to print out the results of parsing the command line, 
+or 0 to not printthe results of parsing.
+
+**************************************************************************************************
+
+Built-In Commands:
+
+# anytext 
+	 
+	The # command is a comment command. It tells your shell that this is a comment line. Any
+	 text after the # will be ignored. The # must occur as the first token on the line.
+
+defprompt prompt  
+	
+	Set the shell prompt to prompt. The default prompt should be “svsh > ”.
+
+cd directory name 
+	
+	This command changes the current directory to directory name. You do not need to handle
+	“cd” with no arguments – (a shell like bash would have taken you to the home directory when
+	given no arguments). See the getwd(3) and chdir(2) system calls.
+
+variable name = variable def
+	
+	This command sets the variable specified by variable name to variable def.
+
+listjobs
+	
+	List all jobs running in the background.
+
+bye
+	
+	Gracefully exit the svsh shell.
+
+******************************************************************************************************
+
+User Commands:
+
+run cmd [arg]* [<bg>] 
+	
+	The run command will execute a given program. It also can be ran with the <bg> option to run 
+	the proceses in the background. 
+	
+assignto variable name cmd [arg]*
+
+	The assignto command executes the given program and assign the output from the program to the 
+	specified variable.
+
+******************************************************************************************************
+
+The scanner and parser for the svsh shell were created using flex and bison respectively.
+The scanner tokenizing specifications are implemented in the file "scanner.l".
+The parser is implemented in the file "parser.y".
+
+
+*****************************************************************************************************
+
+Bugs and Limitations
+		
+	System calls are implemented in the svsh.c file but currently are not functional on our kernel
+	
+	Variables cannot be removed after creation.
+
+	Listjobs uses pgrep to display background process. This does not display as much information
+	as the ps call.
+
+Feature
+
+	All regular variables are not global. This allows for more than 20 local variables, while still
+	allowing for global variables to be created and used across multiple shells.
+
+

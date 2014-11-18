@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "svsh_structs.h" 
 #include "svsh.h"
@@ -15,6 +18,8 @@ void printArgList(ARG_LIST * argList);
 void printTokenList(TOKEN_LIST * tokenList);
 ARG_LIST * makeArgList(char * arg, ARG_LIST * wordList);
 extern void makeTokenList(char * tokenType, char * tokenList, char * usage, ARG_LIST * wordList);
+#define __NR_SaveVariable 314
+
 int yydebug = 1;
 
 %}
@@ -89,11 +94,17 @@ command:
 						user_command($1, NULL, NULL);
 						free($1);
 					}
-		  | SYS_VARIABLE EQUALTO STRING  {
-		 					printf("Found sys variable");
-		 				}
 
-	      ; 	
+
+                  | SYS_VARIABLE EQUALTO STRING {
+                                                //saveGlobalVar System call                           
+                                                syscall(__NR_SaveVariable,$1, $3);                   
+                                                makeTokenList("global_variable", $1,"global_variable_name", NULL);
+                                                makeTokenList("metachar", "=", "assignment",NULL);    
+                                                makeTokenList("string", $3, "global_variable_def",NULL);       
+                  }                                                                                   
+              ; 
+	
 
 user_command:
 	      /* WORD arg_list		{
