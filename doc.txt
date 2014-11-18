@@ -79,12 +79,13 @@ Bugs and Limitations
 	
 	Variables cannot be removed after creation.
 
-	Listjobs uses pgrep to display background process. This does not display as much information
-	as the ps call.
-
 Feature
 
-	All regular variables are not global. This allows for more than 20 local variables, while still
-	allowing for global variables to be created and used across multiple shells.
+	All regular variables (prefixed with $) are not global. This allows for more than 20 local variables, while still
+	allowing for global variables (prefixed with @) to be created and used across multiple shells.
+
+
+	Listjobs uses pgrep to display background process. This cleans up the information displayed to make it show only
+	processes run by our shell.
 
 
