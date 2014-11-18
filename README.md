@@ -1,4 +1,5 @@
-**CS 485 Shared Variable Shell (svsh)**
+CS 485 Shared Variable Shell (svsh)
+===================================
 
 Authors
 ```
