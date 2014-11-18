@@ -226,8 +226,9 @@ void user_command(ARG_LIST * argList, char * assigntoVar){
         environListIterator = environListIterator -> next;                                            
         }
 
-	char *glbalVarValue;
-	retval = syscall(__NR_GetVariable, myArglist->word, &globalVarValue, 256);
+	char *globalVarValue;
+
+	int retval = syscall(__NR_GetVariable, myArglist->word, &globalVarValue, 256);
 	if(retval != -1){
 		argv[i] = globalVarValue;
 	}
