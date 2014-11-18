@@ -11,13 +11,13 @@
 #include "svsh.h"
 
 extern void builtIn(int cmd, char * str, char * varName);
-extern void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirect);
+extern void user_command(ARG_LIST * argList, char * assigntoVar);
+extern void makeTokenList(char * tokenType, char * tokenList, char * usage, ARG_LIST * wordList);
 int yylex(void);
 void yyerror(char * s);
 void printArgList(ARG_LIST * argList);
 void printTokenList(TOKEN_LIST * tokenList);
 ARG_LIST * makeArgList(char * arg, ARG_LIST * wordList);
-extern void makeTokenList(char * tokenType, char * tokenList, char * usage, ARG_LIST * wordList);
 #define __NR_SaveVariable 314
 
 int yydebug = 1;
@@ -88,10 +88,10 @@ command:
 						//	makeTokenList("cmd", $3, "cmd", NULL);
 						//	builtIn(EQUALTO, NULL, $2);
 						//	$$ = makeArgList(NULL, $3);
-							user_command($3, $2, NULL);
+							user_command($3, $2);
 					}
 	      | user_command		{
-						user_command($1, NULL, NULL);
+						user_command($1, NULL);
 						free($1);
 					}
 
@@ -129,7 +129,15 @@ user_command:
 	     |RUN VARIABLE arg_list	{	makeTokenList("keyword", "run", "run", NULL);
                                                 makeTokenList("variable", $2, "variable_name", NULL);
 						makeTokenList("word", NULL, "arg", $3);
-						$$ = makeArgList($2, $3); } 
+						$$ = makeArgList($2, $3); }
+             |RUN SYS_VARIABLE              {       makeTokenList("keyword", "run", "run", NULL);
+                                                makeTokenList("variable", $2, "variable_name", NULL);
+                                                $$ = makeArgList($2, NULL); } 
+
+             |RUN SYS_VARIABLE arg_list     {       makeTokenList("keyword", "run", "run", NULL);
+                                                makeTokenList("variable", $2, "variable_name", NULL);
+                                                makeTokenList("word", NULL, "arg", $3);
+                                                $$ = makeArgList($2, $3); } 
         ;
 
 arg_list:
@@ -137,6 +145,7 @@ arg_list:
 					  $$ = makeArgList($1, NULL); }
 	      |	STRING			{ $$ = makeArgList($1, NULL); }
 	      | VARIABLE		{ $$ = makeArgList($1, NULL); }
+	      | SYS_VARIABLE		{ $$ = makeArgList($1, NULL); }
 	/*      | VARIABLE arg_list	{ $$ = makeArgList($1, $2); }*/
 	      | WORD arg_list		{ $$ = makeArgList($1, $2); }	
 	      | STRING arg_list		{ $$ = makeArgList($1, $2); } 

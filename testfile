@@ -1,18 +1,14 @@
 $PATH = "/bin:/usr/bin"
 $HomeDir = "/home/mylogin"
-$Myfile = "fileA"
-$Filebase = "paper"
+$Filebase = "doc"
 $ShowTokens = "1"
-run echo $PATH
-cd /usr/bin
-cd ./bin
-cd ../misc/oldstuff
-cd /usr
-cd $HomeDir
-run /usr/bin/wc -l $Myfile
-run wc -l f1 f2 f3 <bg>
+run /usr/bin/wc -l svsh
+run wc -l svsh.c svsh.h svsh <bg>
 assignto $TextFile /bin/echo -e $Filebase "\b.txt"
-run cat $TextFile
+run cat $Filebase
 run /bin/ls
 run ls -l -F -g -s /tmp
+run echo $PATH
+cd /usr/bin
+cd $HomeDir
 bye

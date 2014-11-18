@@ -1,9 +1,8 @@
 //
 //  svsh.c
 //  svsh
-//
-//  Created by Aly Shehata on 11/9/14.
-//  Copyright (c) 2014 Aly Shehata. All rights reserved.
+// 
+//  Kayla Shao , Aly Shehata , Errol Lepianka , Larry Williamson
 //
 
 #include <stdlib.h>
@@ -185,7 +184,7 @@ void builtIn(int cmd, char * str, char * varName){
     }
 }
 
-void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirect){
+void user_command(ARG_LIST * argList, char * assigntoVar){
 	char * path = getPath();
     int argListCount = 0;
     int envListCount = 0;
@@ -282,7 +281,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
 
     if((pid = fork()) == 0)
     {
-        if(bg == 1 || inputRedirect != NULL){
+        if(bg == 1 || assigntoVar != NULL){
             freopen("/dev/null", "w", stdout); // or "nul" instead of "/dev/null"
         }
 
@@ -320,7 +319,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         }
     }
 
-    if(inputRedirect != NULL){
+    if(assigntoVar != NULL){
     char buffer[10000];
     FILE *fp;
     fp = popen(*myAssign, "r");
@@ -339,7 +338,7 @@ void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirec
         //printf("%s",temp);
         i++;}
     temp[strlen(temp)] = '\0';
-        addToEnvList(inputRedirect, temp); 
+        addToEnvList(assigntoVar, temp); 
         fflush(fp); 
 
         }

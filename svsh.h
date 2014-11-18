@@ -5,7 +5,7 @@
 
 void initCmdPrompt(void);
 void printCmdPrompt(void);
-void user_command(ARG_LIST * argList, char * inputRedirect, char * outputRedirect);
+void user_command(ARG_LIST * argList, char * assigntoVar);
 void builtIn(int cmd, char * str, char * varName);
 void makeTokenList(char * tokenType, char* tokenList, char * usage, ARG_LIST * argList); 
 //void showTokens(TOKEN_LIST * tokenList);
