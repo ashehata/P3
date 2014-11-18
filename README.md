@@ -1,10 +1,12 @@
 CS 485 Shared Variable Shell (svsh)
 
+Authors
+```
 Larry Williamson
 Kayla Shao
 Aly Shehata
 Errol Lepianka
-
+```
 Date 11/17/14
 README.md
 ```
